@@ -22,14 +22,14 @@ conda env create -f environment.yaml
 conda activate qwen2_vl
 ```
 
-## How to use
+## How to start server
 
 - run the server
 ```shell
 MODEL=Qwen/Qwen2-VL-7B-Instruct API_PORT=10102 API_HOST=0.0.0.0 python app.py 
 ```
 
-## Quick start
+## How to start client
 
 ```python
 from openai import OpenAI
@@ -109,3 +109,28 @@ response = client.chat.completions.create(
 )
 
 ```
+
+## License
+
+This project is licensed under the Apache-2.0 License. 
+
+## Citation
+
+If you find this repository useful in your project, please consider giving a star 🌟 and citing:
+
+```bibtex
+@misc{Qwen2-VL-inference,
+  author = {Cheng ZHANG},
+  title = {Qwen2-VL-inference},
+  year = {2024},
+  publisher = {GitHub},
+  url = {https://github.com/ZachcZhang/Qwen2-VL-inference}
+}
+```
+
+## Acknowledgement
+
+This project is based on
+
+- [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory)
+- [Qwen/Qwen2-VL-7B-Instruct](https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct)
