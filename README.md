@@ -3,6 +3,7 @@
 This repository is a `MLLM inference server` which is used for [qwen2-vl series model](https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct) using HuggingFace. 
 
 ## Features
+
 - Support OpenAI client
 - stream response & normal response
 
@@ -28,6 +29,13 @@ conda activate qwen2_vl
 ```shell
 MODEL=Qwen/Qwen2-VL-7B-Instruct API_PORT=10102 API_HOST=0.0.0.0 python app.py 
 ```
+
+
+## Use Case
+
+<div>
+    <img src="./docs/20241026-180714.jpeg" width="30%"></img>
+</div>
 
 ## How to start client
 
@@ -109,6 +117,12 @@ response = client.chat.completions.create(
 )
 
 ```
+
+## Use Case
+
+<div>
+    <img src="./docs/20241026-180714.jpeg" width="30%"></img>
+</div>
 
 ## License
 
