@@ -107,8 +107,10 @@ def create_app(chat_model: "ChatModel") -> "FastAPI":
 
 
 def run_api() -> None:
-    chat_model = ChatModel()
+    model = os.environ.get("MODEL","Qwen/Qwen2-VL-7B-Instruct")
+    chat_model = ChatModel(model)
     app = create_app(chat_model)
+
     api_host = os.environ.get("API_HOST", "0.0.0.0")
     api_port = int(os.environ.get("API_PORT", "8000"))
     print("Visit http://localhost:{}/docs for API document.".format(api_port))

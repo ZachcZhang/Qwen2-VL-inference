@@ -21,9 +21,10 @@ class Response:
     
 class ChatModel:
     def __init__(self, 
-                 args: Optional[Dict[str, Any]] = None
+        model:Optional[str] = "Qwen/Qwen2-VL-7B-Instruct",
+        args: Optional[Dict[str, Any]] = None
     ) -> None:
-        self.engine = Qwen2VL(model="Qwen/Qwen2-VL-7B-Instruct")
+        self.engine = Qwen2VL(model=model)
         self.engine_type = "huggingface"
         self._loop = asyncio.new_event_loop()
         self._thread = Thread(target=_start_background_loop, args=(self._loop,), daemon=True)

@@ -1,6 +1,6 @@
 # Qwen2-VL-inference
 
-This repository is a `MLLM inference server` which is used for inferencing [qwen2-vl-7B](https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct) using HuggingFace. 
+This repository is a `MLLM inference server` which is used for inferencing [qwen2-vl series model](https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct) using HuggingFace. 
 
 ## Features
 - Support OpenAI client
@@ -26,7 +26,7 @@ conda activate qwen2_vl
 
 - run the server
 ```shell
-API_PORT=10102 python app.py 
+MODEL=Qwen/Qwen2-VL-7B-Instruct API_PORT=10102 API_HOST=0.0.0.0 python app.py 
 ```
 
 ## Quick start
