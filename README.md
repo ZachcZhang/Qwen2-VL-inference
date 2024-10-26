@@ -118,12 +118,6 @@ response = client.chat.completions.create(
 
 ```
 
-## Use Case
-
-<div>
-    <img src="./docs/20241026-180714.jpeg" width="30%"></img>
-</div>
-
 ## License
 
 This project is licensed under the Apache-2.0 License. 
