@@ -1,8 +1,8 @@
 from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor, TextStreamer, AutoModelForVision2Seq
 from qwen_vl_utils import process_vision_info
 from transformers import TextIteratorStreamer
-
-from typing import Optional, Union, Any, Sequence, Dict
+from dataclasses import dataclass
+from typing import Optional, Union, Any, Sequence, Dict, List, Literal
 from threading import Thread
 
 import asyncio
@@ -17,7 +17,12 @@ import torch
 # processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-7B-Instruct")
 # tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-VL-7B-Instruct")
 
-
+@dataclass
+class Response:
+    response_text: str
+    response_length: int
+    prompt_length: int
+    finish_reason: Literal["stop", "length"]
 
 class Qwen2VL():
     def __init__(self, model:Optional[str] = "Qwen/Qwen2-VL-7B-Instruct"):
@@ -40,21 +45,71 @@ class Qwen2VL():
             processed_msg.append(msg)
         return processed_msg
     
+    
+    @torch.inference_mode()
+    def _chat(
+        self, 
+        messages: Sequence[Dict[str, str]]=None,
+        input_kwargs: Optional[Dict[str, Any]] = {}
+    ) -> List["Response"]:
+        messages = self._process_args(messages)
+        text = self.processor.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+        image_inputs, video_inputs = process_vision_info(messages)
+        inputs = self.processor(
+            text=[text],
+            images=image_inputs,
+            videos=video_inputs,
+            padding=True,
+            return_tensors="pt",
+        )
+        inputs = inputs.to("cuda")
+        generation_kwargs = dict(
+            **inputs,
+            max_new_tokens = input_kwargs["max_new_tokens"],
+        )
+        generated_ids = self.model.generate(**generation_kwargs)
+        generated_ids_trimmed = [
+            out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+        ]
+        response = self.processor.batch_decode(
+            generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+        )
+        results = []
+        for i in range(len(response)):
+            eos_index = (generated_ids_trimmed[i] == self.tokenizer.eos_token_id).nonzero()
+            response_length = (eos_index[0].item() + 1) if len(eos_index) else len(generated_ids_trimmed[i])
+            results.append(
+                Response(
+                    response_text=response[i],
+                    response_length=response_length,
+                    prompt_length=None,
+                    finish_reason="stop" if len(eos_index) else "length",
+                )
+            )
+        return results
+    
+
+    async def chat(
+        self,
+        messages: Sequence[Dict[str, str]] = None,
+        **input_kwargs,
+    ) -> List["Response"]:
+
+        loop = asyncio.get_running_loop()
+        input_args = (
+            messages,
+            input_kwargs,
+        )
+        async with self._semaphore:
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                return await loop.run_in_executor(pool, self._chat, *input_args)
+            
+    
     @torch.inference_mode()
     def _stream_chat(self, messages:Sequence[dict[str,str]]=None,
                      **input_kwargs):
-        # messages = [
-        #     {
-        #         "role": "user",
-        #         "content": [
-        #             {
-        #                 "type": "image",
-        #                 "image": "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-VL/assets/demo.jpeg",
-        #             },
-        #             {"type": "text", "text": "Describe this image."},
-        #         ],
-        #     }
-        # ]
         messages = self._process_args(messages)
         text = self.processor.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
@@ -78,7 +133,7 @@ class Qwen2VL():
             with torch.no_grad():
                 model.generate(**generation_kwargs)
                 
-        thread = Thread(target=generate_with_no_grad, args=(self.model,generation_kwargs))
+        thread = Thread(target=generate_with_no_grad, args=(self.model, generation_kwargs))
         thread.start()
         
         def stream():
@@ -113,8 +168,10 @@ class Qwen2VL():
 # 主函数使用 asyncio.run 启动异步代码
 async def main():
     engine = Qwen2VL()
-    async for content in engine.stream_chat():
-        print(content, end="")
+    await engine.chat()
+    
+    # async for content in engine.stream_chat():
+    #     print(content, end="")
 
 if __name__ == "__main__":
     asyncio.run(main())

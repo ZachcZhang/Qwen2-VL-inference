@@ -1,14 +1,24 @@
 import asyncio
 from threading import Thread
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Generator, List, Optional, Sequence
+import concurrent.futures
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Generator, List, Optional, Sequence, Literal
 from .qwen2_vl import Qwen2VL
 import os
+from dataclasses import dataclass
 
 def _start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)
     loop.run_forever()
+    
 
-
+@dataclass
+class Response:
+    response_text: str
+    response_length: int
+    prompt_length: int
+    finish_reason: Literal["stop", "length"]
+    
+    
 class ChatModel:
     def __init__(self, 
                  args: Optional[Dict[str, Any]] = None
@@ -20,6 +30,45 @@ class ChatModel:
         self._thread.start()
         asyncio.run_coroutine_threadsafe(self.engine.start(), self._loop)
         
+    async def chat(
+        self,
+        messages: Sequence[Dict[str, str]],
+        system: Optional[str] = None,
+        tools: Optional[str] = None,
+        **input_kwargs,
+    ) -> List["Response"]:
+        if not self.can_generate:
+            raise ValueError("The current model does not support `chat`.")
+
+        loop = asyncio.get_running_loop()
+        input_args = (
+            self.model,
+            self.tokenizer,
+            self.processor,
+            self.template,
+            self.generating_args,
+            messages,
+            system,
+            tools,
+            input_kwargs,
+        )
+        async with self.semaphore:
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                return await loop.run_in_executor(pool, self._chat, *input_args)
+            
+
+    async def achat(
+        self,
+        messages: Sequence[Dict[str, str]],
+        system: Optional[str] = None,
+        tools: Optional[str] = None,
+        **input_kwargs,
+    ) -> List["Response"]:
+        r"""
+        Asynchronously gets a list of responses of the chat model.
+        """
+        return await self.engine.chat(messages, **input_kwargs)
+    
     def stream_chat(
         self,
         messages: Sequence[Dict[str, str]],

@@ -195,6 +195,44 @@ async def create_stream_chat_completion_response(
     yield "[DONE]"
 
 
+async def create_chat_completion_response(
+    request: "ChatCompletionRequest", chat_model: "ChatModel"
+) -> "ChatCompletionResponse":
+    completion_id = "chatcmpl-{}".format(uuid.uuid4().hex)
+    input_messages = request.messages
+    responses = await chat_model.achat(
+        input_messages,
+        max_new_tokens=request.max_tokens,
+    )
+
+    prompt_length, response_length = 0, 0
+    choices = []
+    for i, response in enumerate(responses):
+        result = response.response_text
+
+        if isinstance(result, tuple):
+            name, arguments = result
+            function = Function(name=name, arguments=arguments)
+            tool_call = FunctionCall(id="call_{}".format(uuid.uuid4().hex), function=function)
+            response_message = ChatCompletionMessage(role=Role.ASSISTANT, tool_calls=[tool_call])
+            finish_reason = Finish.TOOL
+        else:
+            response_message = ChatCompletionMessage(role=Role.ASSISTANT, content=result)
+            finish_reason = Finish.STOP if response.finish_reason == "stop" else Finish.LENGTH
+
+        choices.append(ChatCompletionResponseChoice(index=i, message=response_message, finish_reason=finish_reason))
+        prompt_length = 0
+        response_length += response.response_length
+
+    usage = ChatCompletionResponseUsage(
+        prompt_tokens=prompt_length,
+        completion_tokens=response_length,
+        total_tokens=prompt_length + response_length,
+    )
+
+    return ChatCompletionResponse(id=completion_id, model=request.model, choices=choices, usage=usage)
+
+
 async def create_stream_image2text_completion_response(
     request: "ChatCompletionRequest", chat_model: "ChatModel"
 ) -> AsyncGenerator[str, None]:
