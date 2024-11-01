@@ -37,7 +37,7 @@ MODEL=Qwen/Qwen2-VL-7B-Instruct API_PORT=10102 API_HOST=0.0.0.0 python app.py
 ## Use Case
 
 <div>
-    <img src="./docs/20241026-180714.jpeg" width="30%"></img>
+    <img src="./docs/20241101-125954.jpeg" width="50%"></img>
 </div>
 
 ## How to start client
