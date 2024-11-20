@@ -27,6 +27,7 @@ def torch_gc() -> None:
     elif is_torch_cuda_available():
         torch.cuda.empty_cache()
 
+
 def get_logger(name: str) -> logging.Logger:
     r"""
     Gets a standard logger with a stream hander to stdout.

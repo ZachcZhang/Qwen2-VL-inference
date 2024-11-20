@@ -69,24 +69,6 @@ def create_app(chat_model: "ChatModel") -> "FastAPI":
     async def list_models():
         model_card = ModelCard(id="gpt-3.5-turbo")
         return ModelList(data=[model_card])
-    
-
-    # @app.post(
-    #     "/v1/chat/completions",
-    #     response_model=ChatCompletionResponse,
-    #     status_code=status.HTTP_200_OK,
-    #     dependencies=[Depends(verify_api_key)],
-    # )
-    # async def create_chat_completion(request: ChatCompletionRequest):
-    #     # if not chat_model.engine.can_generate:
-    #     #     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Not allowed")
-
-    #     if request.stream:
-    #         generate = create_stream_chat_completion_response(request, chat_model)
-    #         return EventSourceResponse(generate, media_type="text/event-stream")
-    #     else:
-    #         return await create_chat_completion_response(request, chat_model)
-
 
     @app.post(
         "/v1/chat/completions",

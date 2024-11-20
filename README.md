@@ -17,12 +17,12 @@ This repository is a `MLLM inference server` which is used for [qwen2-vl series 
 
 ## Installation
 
-Install the reqired packages using `environment.yaml`
+Install the reqired packages using requirements.txt
 
-## Using the `environment.yaml`
+
 
 ```shell
-conda env create -f environment.yaml
+conda create --name qwen2_vl python==3.10
 conda activate qwen2_vl
 ```
 
@@ -33,6 +33,11 @@ conda activate qwen2_vl
 MODEL=Qwen/Qwen2-VL-7B-Instruct API_PORT=10102 API_HOST=0.0.0.0 python app.py 
 ```
 
+- Hardware Requirement(approximately)
+
+    | Qwen2_vl  |   7B  |  72B  |  
+    | ----      | ----- | ----- |
+    | GPU       | 16GB  | 150GB | 
 
 ## Use Case
 
@@ -40,7 +45,7 @@ MODEL=Qwen/Qwen2-VL-7B-Instruct API_PORT=10102 API_HOST=0.0.0.0 python app.py
     <img src="./docs/20241101-125954.jpeg" width="75%"></img>
 </div>
 
-## How to start client
+## How to start client using OpenAI
 
 ```python
 from openai import OpenAI
@@ -77,7 +82,8 @@ for chunk in stream:
         full_response += content
         print(content)
 ```
-
+## How to start client using Restful
+[Click here Using Restful](./docs/restful.md)
 ## message formart
 
 ```python
@@ -120,6 +126,10 @@ response = client.chat.completions.create(
 )
 
 ```
+
+## Docs
+
+Because we are using FastAPI to build the service, you can visit http://127.0.0.1:10102/docs to get the API document.
 
 ## License
 
