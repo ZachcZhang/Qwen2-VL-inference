@@ -23,7 +23,10 @@ Install the reqired packages using requirements.txt
 
 ```shell
 conda create --name qwen2_vl python==3.10
+
 conda activate qwen2_vl
+
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ## How to start server
